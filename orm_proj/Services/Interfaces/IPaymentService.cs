@@ -4,8 +4,8 @@ namespace orm_proj.Services.Interfaces
 {
     public interface IPaymentService
     {
-        Task MakePaymentAsync();
-        Task<List<Payment>> GetAllPayments();
+        Task MakePaymentAsync(int orderId, decimal amount);
+        Task<List<PaymentGetDto>> GetAllPayments(); 
                 
     }
 }

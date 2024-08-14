@@ -1,14 +1,11 @@
-﻿using orm_proj.Models;
-
-namespace orm_proj.Services.Interfaces
+﻿namespace orm_proj.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task CreateOrderAsync(Order order);
-        Task CancelOrderAsync(Order order);
-        Task CompleteOrderAsync(Order order);
-        Task AddOrderDetailAsync(Order order);
-        Task<List<Order>> GetAllOrders();
-        Task<List<OrderDetail>> GetOrderDetailByOrderIdAsync();
+        Task CreateOrderAsync(OrderPostDto newOrder);  //create
+        Task CancelOrderAsync(OrderPutDto newOrder);  //update status
+        Task CompleteOrderAsync(OrderPutDto newOrder);  //update status
+        Task<List<OrderGetDto>> GetAllOrders();
+        Task<List<OrderGetDto>> GetUserOrdersAsync(int userId);
     }
 }

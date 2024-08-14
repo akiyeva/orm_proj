@@ -1,38 +1,117 @@
-﻿using orm_proj.Models;
+﻿using orm_proj.Repositories.Implementations;
+using orm_proj.Repositories.Interfaces;
 using orm_proj.Services.Interfaces;
 
 namespace orm_proj.Services.Implementations
 {
     public class OrderService : IOrderService
     {
-        public Task AddOrderDetailAsync(Order order)
+        private readonly IOrderRepository _orderRepository;
+        private readonly IUserRepository _userRepository;
+        public OrderService(OrderRepository orderRepository,UserRepository userRepository)
         {
-            throw new NotImplementedException();
+            _orderRepository = orderRepository;
+            _userRepository = userRepository;
         }
 
-        public Task CancelOrderAsync(Order order)
+        public async Task CreateOrderAsync(OrderPostDto newOrder)
         {
-            throw new NotImplementedException();
+            var user = await _userRepository.GetSingleAsync(x => x.Id == newOrder.UserId);
+
+            if (user == null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            if (newOrder.TotalAmount <= 0)
+            {
+                throw new InvalidOrderException("Total amount must be greater than zero.");
+            }
+
+            Order order = new Order()
+            {
+                UserId = newOrder.UserId,
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = newOrder.TotalAmount,
+                Status = Enums.OrderStatus.Pending,
+                Details = new List<OrderDetail>()
+            };
+
+            await _orderRepository.CreateAsync(order);
+            await _orderRepository.SaveChangesAsync();
+
+        }
+        public async Task CancelOrderAsync(OrderPutDto newOrder)
+        {
+            var order = await _getOrderById(newOrder.Id);
+
+            order.Status = Enums.OrderStatus.Cancelled;
+
+            _orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
         }
 
-        public Task CompleteOrderAsync(Order order)
+        public async Task CompleteOrderAsync(OrderPutDto newOrder)
         {
-            throw new NotImplementedException();
+            var order = await _getOrderById(newOrder.Id);
+
+            order.Status = Enums.OrderStatus.Completed;
+
+            _orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
         }
 
-        public Task CreateOrderAsync(Order order)
+        public async Task<List<OrderGetDto>> GetAllOrders()
         {
-            throw new NotImplementedException();
+            var orders = await _orderRepository.GetAllAsync("OrderStatus", "OrderDetail");
+
+            List<OrderGetDto> result = new List<OrderGetDto>();
+
+            orders.ForEach(order =>
+            {
+                OrderGetDto orderGet = new OrderGetDto()
+                {
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    OrderDate = DateTime.UtcNow,
+                    TotalAmount = order.TotalAmount,
+                    Status = Enums.OrderStatus.Pending,
+                    Details = new List<OrderDetail>()
+                };
+                result.Add(orderGet);
+            });
+            return result;
         }
 
-        public Task<List<Order>> GetAllOrders()
+        public async Task<List<OrderGetDto>> GetUserOrdersAsync(int userId)
         {
-            throw new NotImplementedException();
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+
+            List<OrderGetDto> result = new List<OrderGetDto>();
+
+            orders.ForEach(order =>
+            {
+                OrderGetDto orderGet = new OrderGetDto
+                {
+                    Id = order.Id,
+                    OrderDate = order.OrderDate,
+                    TotalAmount = order.TotalAmount,
+                    Status = order.Status
+                };
+                result.Add(orderGet);
+            });
+            return result;
         }
 
-        public Task<List<OrderDetail>> GetOrderDetailByOrderIdAsync()
+        public async Task<Order> _getOrderById(int id)
         {
-            throw new NotImplementedException();
+            var order = await _orderRepository.GetSingleAsync(x => x.Id == id);
+
+            if (order == null)
+                throw new NotFoundException("Order not found");
+
+            return order;
         }
+
     }
 }

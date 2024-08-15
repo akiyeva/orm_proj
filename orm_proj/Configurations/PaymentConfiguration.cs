@@ -7,7 +7,7 @@ namespace orm_proj.Configurations
     {
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
-            builder.Property(a => a.Amount).IsRequired();
+            builder.Property(a => a.Amount).IsRequired().HasColumnType("decimal(6,2)");
         }
     }
 }

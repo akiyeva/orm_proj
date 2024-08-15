@@ -1,4 +1,5 @@
-﻿using orm_proj.Repositories.Implementations;
+﻿using orm_proj.Models;
+using orm_proj.Repositories.Implementations;
 using orm_proj.Repositories.Interfaces;
 using orm_proj.Services.Interfaces;
 
@@ -72,6 +73,7 @@ namespace orm_proj.Services
             return result;
         }
 
+
         public async Task<ProductGetDto> GetProductById(int id)
         {
             var product = await _getProductById(id);
@@ -86,6 +88,17 @@ namespace orm_proj.Services
             };
             return dto;
         }
+        public async Task<decimal> GetProductPrice(int productId)
+        {
+            var product = await _productRepository.GetSingleAsync(x => x.Id == productId);
+
+            if (product == null)
+            {
+                throw new NotFoundException("Product not found.");
+            }
+
+            return product.Price;
+        } 
 
         public async Task<List<ProductGetDto>> SearchProducts(string term)
         {
@@ -108,7 +121,6 @@ namespace orm_proj.Services
             });
 
             return result;
-
         }
 
         public async Task UpdateProductAsync(ProductPutDto newProduct)

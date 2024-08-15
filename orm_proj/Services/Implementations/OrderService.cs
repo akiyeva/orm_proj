@@ -1,4 +1,5 @@
-﻿using orm_proj.Repositories.Implementations;
+﻿using orm_proj.Enums;
+using orm_proj.Repositories.Implementations;
 using orm_proj.Repositories.Interfaces;
 using orm_proj.Services.Interfaces;
 
@@ -41,9 +42,9 @@ namespace orm_proj.Services.Implementations
             await _orderRepository.SaveChangesAsync();
 
         }
-        public async Task CancelOrderAsync(OrderPutDto newOrder)
+        public async Task CancelOrderAsync(int id)
         {
-            var order = await _getOrderById(newOrder.Id);
+            var order = await _getOrderById(id);
 
             order.Status = Enums.OrderStatus.Cancelled;
 
@@ -51,9 +52,9 @@ namespace orm_proj.Services.Implementations
             await _orderRepository.SaveChangesAsync();
         }
 
-        public async Task CompleteOrderAsync(OrderPutDto newOrder)
+        public async Task CompleteOrderAsync(int id)
         {
-            var order = await _getOrderById(newOrder.Id);
+            var order = await _getOrderById(id);
 
             order.Status = Enums.OrderStatus.Completed;
 

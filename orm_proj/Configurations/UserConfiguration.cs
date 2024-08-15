@@ -7,10 +7,10 @@ namespace orm_proj.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(a => a.UserName).IsRequired();
-            builder.Property(a => a.Email).IsRequired();
-            builder.Property(a => a.Password).IsRequired();
-            builder.Property(a => a.Address).IsRequired();
+            builder.Property(a => a.UserName).IsRequired().HasMaxLength(50);
+            builder.Property(a => a.Email).IsRequired().HasMaxLength(100);
+            builder.Property(a => a.Password).IsRequired().HasMaxLength(100);
+            builder.Property(a => a.Address).IsRequired().HasMaxLength(255);
         }
     }
 }

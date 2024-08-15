@@ -28,29 +28,32 @@ namespace orm_proj.Services.Implementations
                 UserName = newUser.UserName,
                 Email = newUser.Email,
                 Password = newUser.Password,
-                Address = newUser.Address
+                Address = newUser.Address,
+                IsAdmin = false,
             };
 
             await _userRepository.CreateAsync(user);
+            await _userRepository.SaveChangesAsync();
         }
 
         public async Task<UserGetDto> LoginUserAsync(string email, string password)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await GetUserByEmailAsync(email);
 
             if (user == null || user.Password != password)
             {
                 throw new UserAuthenticationException("Invalid email or password.");
             }
 
-            UserGetDto userGet = new UserGetDto()
+            UserGetDto _currentUser = new UserGetDto()
             {
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Address = user.Address
+                Address = user.Address,
+                IsAdmin = user.IsAdmin,
             };
-            return userGet;
+            return _currentUser;
         }
 
         public async Task UpdateUserInfoAsync(int userId, UserPutDto userDto)
@@ -72,6 +75,35 @@ namespace orm_proj.Services.Implementations
         {
             throw new NotImplementedException("Export to Excel is not implemented.");
         }
+
+        public async Task RegisterAdminAsync(UserPostDto newAdmin)
+        {
+
+            if (string.IsNullOrWhiteSpace(newAdmin.UserName) || string.IsNullOrWhiteSpace(newAdmin.Email) ||
+                string.IsNullOrWhiteSpace(newAdmin.Password))
+            {
+                throw new InvalidUserInformationException("User information is incomplete.");
+            }
+
+
+
+            var user = new User
+            {
+                UserName = newAdmin.UserName,
+                Email = newAdmin.Email,
+                Password = newAdmin.Password,
+                Address = newAdmin.Address,
+                IsAdmin = true,
+            };
+
+            await _userRepository.CreateAsync(user);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            return await _userRepository.GetByEmailAsync(email);
+        }
+    }
     }
 
-}

@@ -2,6 +2,6 @@
 {
     public static class Constants
     {
-        public const string connectionString = "Server=;Database=;Trusted_Connection=True";
+        public const string connectionString = "Server=NAFISATAKIYEVA;Database=Ecommence;Trusted_Connection=True";
     }
 }

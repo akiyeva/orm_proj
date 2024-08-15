@@ -6,7 +6,7 @@ namespace orm_proj.DTOs
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public int TotalAmount { get; set; }  //Sifarişin ümumi məbləği
+        public decimal TotalAmount { get; set; }  //Sifarişin ümumi məbləği
         public OrderStatus Status { get; set; }
     }
 }

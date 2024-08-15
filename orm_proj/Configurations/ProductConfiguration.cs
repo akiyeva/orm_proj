@@ -6,8 +6,11 @@ namespace orm_proj.Configurations
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {
-            builder.Property(a => a.Name).IsRequired(true).HasMaxLength(100);
+            builder.Property(a => a.Name).IsRequired().HasMaxLength(100);
             builder.HasIndex(a => a.Name).IsUnique();
+            builder.Property(a => a.Description).IsRequired().HasMaxLength(255);
+            builder.Property(a => a.Stock).IsRequired();
+            builder.Property(a => a.Price).IsRequired().HasColumnType("decimal(6,2)");
         }
     }
 }

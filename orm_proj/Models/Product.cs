@@ -10,6 +10,10 @@ namespace orm_proj.Models
         public int Stock {  get; set; }  
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set;}
-        
+
+        public override string ToString()
+        {
+            return $"{Name} {Price}$, description: {Description}, {Stock} left.";
+        }
     }
 }

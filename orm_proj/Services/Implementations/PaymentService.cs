@@ -15,17 +15,17 @@ namespace orm_proj.Services.Implementations
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
         }
-        public async Task MakePaymentAsync(int orderId, decimal amount)
+        public async Task MakePaymentAsync(PaymentPostDto paymentDto)
         {
-            if (amount <= 0)
+            if (paymentDto.Amount <= 0)
             {
                 throw new InvalidPaymentException("Payment amount must be greater than zero.");
             }
 
-            var order = await _orderRepository.GetSingleAsync(x => x.Id == orderId);
+            var order = await _orderRepository.GetSingleAsync(x => x.Id == paymentDto.OrderId);
             if (order == null)
             {
-                throw new NotFoundException($"Order with ID {orderId} not found.");
+                throw new NotFoundException($"Order with ID {paymentDto.OrderId} not found.");
             }
 
             if (order.Status == OrderStatus.Cancelled)
@@ -33,19 +33,20 @@ namespace orm_proj.Services.Implementations
                 throw new InvalidPaymentException("Cannot make payment for a cancelled order.");
             }
 
-            var payment = new Payment
+            Payment payment = new Payment
             {
-                OrderId = orderId,
-                Amount = amount,
-                PaymentDate = DateTime.UtcNow
+                OrderId = paymentDto.OrderId,
+                Amount = paymentDto.Amount,
+                PaymentDate = paymentDto.PaymentDate
             };
 
             await _paymentRepository.CreateAsync(payment);
             order.Status = OrderStatus.Completed;
 
             _orderRepository.Update(order);
-            await _paymentRepository.SaveChangesAsync();
+            await _orderRepository.SaveChangesAsync();
         }
+
 
         public async Task<List<PaymentGetDto>> GetAllPayments()
         {
@@ -65,6 +66,21 @@ namespace orm_proj.Services.Implementations
                 result.Add(paymentGet);
             });
             return result;
+        }
+
+        public async Task<List<PaymentGetDto>> GetPaymentByUserId(int userId)
+        {
+            var payments = await _paymentRepository.GetAllAsync();
+
+            return payments
+                .Where(payment => payment.Order.UserId == userId)
+                .Select(payment => new PaymentGetDto
+                {
+                    Id = payment.Id,
+                    OrderId = payment.OrderId,
+                    Amount = payment.Amount,
+                    PaymentDate = payment.PaymentDate
+                }).ToList();
         }
     }
 }

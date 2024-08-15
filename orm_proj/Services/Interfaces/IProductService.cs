@@ -8,5 +8,6 @@
         Task<ProductGetDto> GetProductById(int id);
         Task<List<ProductGetDto>> GetAllProducts();
         Task<List<ProductGetDto>> SearchProducts(string term);
+        Task<decimal> GetProductPrice(int productId);
     }
 }

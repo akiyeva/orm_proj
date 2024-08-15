@@ -3,9 +3,10 @@
     public interface IOrderService
     {
         Task CreateOrderAsync(OrderPostDto newOrder);  //create
-        Task CancelOrderAsync(OrderPutDto newOrder);  //update status
-        Task CompleteOrderAsync(OrderPutDto newOrder);  //update status
+        Task CancelOrderAsync(int id);  //update status
+        Task CompleteOrderAsync(int id);  //update status
         Task<List<OrderGetDto>> GetAllOrders();
         Task<List<OrderGetDto>> GetUserOrdersAsync(int userId);
+       // Task<List<OrderGetDto>> GetPendingOrdersByUserIdAsync(int userId);
     }
 }

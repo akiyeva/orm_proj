@@ -11,5 +11,9 @@ namespace orm_proj.DTOs
         public OrderStatus Status { get; set; }
         public DateTime OrderDate { get; set; }
         public List<OrderDetail> Details { get; set; }
+        public override string ToString()
+        {
+            return $"OrderId: {Id}, UserId: {UserId}, OrderDate: {OrderDate}, Total Amount: {TotalAmount}, Order status: {Status}";
+        }
     }
 }

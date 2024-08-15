@@ -11,9 +11,5 @@ namespace orm_proj.Repositories.Implementations
         {
             _context = context;
         }
-        public async Task<List<Order>> GetOrdersByUserIdAsync(int userId)
-        {
-           return await _context.Orders.Where(x => x.UserId == userId).ToListAsync();
-        }
     }
 }

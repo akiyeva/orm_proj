@@ -7,6 +7,7 @@ namespace orm_proj.Repositories.Interfaces.Generic
     {
         Task CreateAsync(T entity);
         Task<List<T>> GetAllAsync(params string[] includes);
+        Task<List<T>> GetFilterAsync(Expression<Func<T,bool>> expression,params string[] includes);
         Task<T?> GetSingleAsync(Expression<Func<T, bool>> predicate, params string[] includes);
         void Update(T entity);
         void Delete(T entity);

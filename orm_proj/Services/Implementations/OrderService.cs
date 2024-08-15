@@ -9,10 +9,12 @@ namespace orm_proj.Services.Implementations
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IUserRepository _userRepository;
-        public OrderService(OrderRepository orderRepository,UserRepository userRepository)
+        private readonly IProductRepository _productRepository;
+        public OrderService(OrderRepository orderRepository,UserRepository userRepository, IProductRepository productRepository)
         {
             _orderRepository = orderRepository;
             _userRepository = userRepository;
+            _productRepository = productRepository;
         }
 
         public async Task CreateOrderAsync(OrderPostDto newOrder)
@@ -24,24 +26,58 @@ namespace orm_proj.Services.Implementations
                 throw new NotFoundException("User not found.");
             }
 
-            if (newOrder.TotalAmount <= 0)
+            if (newOrder.Details == null || !newOrder.Details.Any())
             {
-                throw new InvalidOrderException("Total amount must be greater than zero.");
+                throw new InvalidOrderException("Order must contain at least one product.");
             }
 
             Order order = new Order()
             {
                 UserId = newOrder.UserId,
                 OrderDate = DateTime.UtcNow,
-                TotalAmount = newOrder.TotalAmount,
                 Status = Enums.OrderStatus.Pending,
                 Details = new List<OrderDetail>()
             };
 
-            await _orderRepository.CreateAsync(order);
-            await _orderRepository.SaveChangesAsync();
+            decimal totalAmount = 0;
 
+            foreach (var detail in newOrder.Details)
+            {
+                var product = await _productRepository.GetSingleAsync(x => x.Id == detail.ProductId);
+
+                if (product == null)
+                {
+                    throw new NotFoundException($"Product with ID {detail.ProductId} not found.");
+                }
+
+                if (product.Stock < detail.Quantity)
+                {
+                    throw new InvalidOrderException($"Product {product.Name} is out of stock or insufficient quantity available.");
+                }
+
+                product.Stock -= detail.Quantity;
+
+                _productRepository.Update(product);
+
+                decimal productTotalPrice = product.Price * detail.Quantity;
+                totalAmount += productTotalPrice;
+
+                order.Details.Add(new OrderDetail
+                {
+                    ProductId = detail.ProductId,
+                    Quantity = detail.Quantity
+                });
+            }
+
+            order.TotalAmount = totalAmount;
+
+            await _orderRepository.CreateAsync(order);
+
+            await _orderRepository.SaveChangesAsync();
+            await _productRepository.SaveChangesAsync();
         }
+
+
         public async Task CancelOrderAsync(int id)
         {
             var order = await _getOrderById(id);
@@ -64,7 +100,7 @@ namespace orm_proj.Services.Implementations
 
         public async Task<List<OrderGetDto>> GetAllOrders()
         {
-            var orders = await _orderRepository.GetAllAsync("OrderStatus", "OrderDetail");
+            var orders = await _orderRepository.GetAllAsync();
 
             List<OrderGetDto> result = new List<OrderGetDto>();
 
@@ -77,7 +113,7 @@ namespace orm_proj.Services.Implementations
                     OrderDate = DateTime.UtcNow,
                     TotalAmount = order.TotalAmount,
                     Status = Enums.OrderStatus.Pending,
-                    Details = new List<OrderDetail>()
+                    Details = order.Details
                 };
                 result.Add(orderGet);
             });
@@ -86,7 +122,7 @@ namespace orm_proj.Services.Implementations
 
         public async Task<List<OrderGetDto>> GetUserOrdersAsync(int userId)
         {
-            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+            var orders = await _orderRepository.GetFilterAsync(x=>x.UserId==userId);
 
             List<OrderGetDto> result = new List<OrderGetDto>();
 
@@ -95,9 +131,11 @@ namespace orm_proj.Services.Implementations
                 OrderGetDto orderGet = new OrderGetDto
                 {
                     Id = order.Id,
+                    UserId = order.UserId,
                     OrderDate = order.OrderDate,
                     TotalAmount = order.TotalAmount,
-                    Status = order.Status
+                    Status = order.Status,
+                    Details = order.Details
                 };
                 result.Add(orderGet);
             });

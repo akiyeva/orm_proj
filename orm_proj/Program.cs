@@ -1,4 +1,5 @@
 ﻿using orm_proj.Enums;
+using orm_proj.Helpers;
 using orm_proj.Repositories.Implementations;
 using orm_proj.Services;
 using orm_proj.Services.Implementations;
@@ -11,20 +12,17 @@ public class Program
     private static IOrderService _orderService;
     private static IPaymentService _paymentService;
     private static UserGetDto _currentUser;
-    public static UserGetDto CurrentUser => _currentUser;
+    public static UserGetDto CurrentUser => _currentUser;  //public static UserGetDto CurrentUser = null;
     public static async Task Main(string[] args)
     {
         InitializeServices();
-
-        //// Simulate user login for testing
-        //Console.WriteLine("Testing login:");
-        //await LoginAsync();
 
         while (true)
         {
             try
             {
-                Console.WriteLine($"Current user: {CurrentUser?.UserName ?? "None"}, IsAdmin: {CurrentUser?.IsAdmin ?? false}");
+                TextColor.WriteLine($"Current user: {CurrentUser?.UserName ?? "None"}, IsAdmin: {CurrentUser?.IsAdmin ?? false}", ConsoleColor.DarkYellow);
+                TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
 
                 if (CurrentUser == null)
                 {
@@ -41,7 +39,7 @@ public class Program
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                TextColor.WriteLine($"An unexpected error occurred: {ex.Message}", ConsoleColor.Red);
             }
         }
     }
@@ -58,19 +56,20 @@ public class Program
 
         _productService = new ProductService(productRepository);
         _userService = new UserService(userRepository, orderRepository);
-        _orderService = new OrderService(orderRepository, userRepository);
+        _orderService = new OrderService(orderRepository, userRepository, productRepository);
         _paymentService = new PaymentService(paymentRepository, orderRepository);
     }
     private static async Task FirstMenuAsync()
     {
         while (true)
         {
-            Console.WriteLine("| Menu |");
-            Console.WriteLine("1. Admin Registration");
-            Console.WriteLine("2. User Registration");
-            Console.WriteLine("3. Login");
-            Console.WriteLine("4. Exit");
-            Console.Write("Select an option: ");
+            TextColor.WriteLine("| Menu |", ConsoleColor.DarkMagenta);
+            TextColor.WriteLine("1. Admin Registration", ConsoleColor.Blue);
+            TextColor.WriteLine("2. User Registration", ConsoleColor.Blue);
+            TextColor.WriteLine("3. Login", ConsoleColor.Blue);
+            TextColor.WriteLine("4. Exit", ConsoleColor.Blue);
+            TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+            TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
             var choice = Console.ReadLine();
 
@@ -84,12 +83,12 @@ public class Program
                     break;
                 case "3":
                     await LoginAsync();
-                    break;
+                    return;
                 case "4":
                     Environment.Exit(0);
                     break;
                 default:
-                    Console.WriteLine("Invalid option. Please try again.");
+                    TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                     break;
             }
         }
@@ -98,14 +97,15 @@ public class Program
     {
         while (true)
         {
-            Console.WriteLine("| Admin Menu |");
-            Console.WriteLine("1. Manage Products");
-            Console.WriteLine("2. Manage Users");
-            Console.WriteLine("3. Manage Orders");
-            Console.WriteLine("4. Manage Payments");
-            Console.WriteLine("5. Log out");
-            Console.WriteLine("6. Exit");
-            Console.Write("Select an option: ");
+            TextColor.WriteLine("| Admin Menu |", ConsoleColor.DarkMagenta);
+            TextColor.WriteLine("1. Manage Products", ConsoleColor.Blue);
+            TextColor.WriteLine("2. Manage Users", ConsoleColor.Blue);
+            TextColor.WriteLine("3. Manage Orders", ConsoleColor.Blue);
+            TextColor.WriteLine("4. View Payments", ConsoleColor.Blue);
+            TextColor.WriteLine("5. Log out", ConsoleColor.Blue);
+            TextColor.WriteLine("6. Exit", ConsoleColor.Blue);
+            TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+            TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
             var choice = Console.ReadLine();
 
@@ -121,18 +121,17 @@ public class Program
                     await ManageOrdersAsync();
                     break;
                 case "4":
-                    await ManagePaymentsAsync();
+                    await ViewPaymentsAsync();
                     break;
                 case "5":
                     _currentUser = null;
-                    Console.WriteLine("Logged out successfully.");
+                    TextColor.WriteLine("Logged out successfully.", ConsoleColor.Green);
                     return;
-                    break;
                 case "6":
                     Environment.Exit(0);
                     break;
                 default:
-                    Console.WriteLine("Invalid option. Please try again.");
+                    TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                     break;
             }
         }
@@ -141,14 +140,15 @@ public class Program
     {
         while (true)
         {
-            Console.WriteLine("| User Menu |");
-            Console.WriteLine("1. View Products");
-            Console.WriteLine("2. Search Products");
-            Console.WriteLine("3. Orders Menu");
-            Console.WriteLine("4. Payments Menu");
-            Console.WriteLine("5. Update my information");
-            Console.WriteLine("6. Logout");
-            Console.Write("Select an option: ");
+            TextColor.WriteLine("| User Menu |", ConsoleColor.DarkMagenta);
+            TextColor.WriteLine("1. View All Products", ConsoleColor.Blue);
+            TextColor.WriteLine("2. Search From Products", ConsoleColor.Blue);
+            TextColor.WriteLine("3. Manage Orders", ConsoleColor.Blue);
+            TextColor.WriteLine("4. View All Payments", ConsoleColor.Blue);
+            TextColor.WriteLine("5. Update My Information", ConsoleColor.Blue);
+            TextColor.WriteLine("6. Logout", ConsoleColor.Blue);
+            TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+            TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
             var choice = Console.ReadLine();
 
@@ -164,18 +164,17 @@ public class Program
                     await ManageOrdersAsync();
                     break;
                 case "4":
-                    await ManagePaymentsAsync();
+                    await ViewPaymentsAsync();
                     break;
                 case "5":
                     await UpdateUserInformationAsync();
                     break;
                 case "6":
                     _currentUser = null;
-                    Console.WriteLine("Logged out successfully.");
+                    TextColor.WriteLine("Logged out successfully.", ConsoleColor.Green);
                     return;
-                    break;
                 default:
-                    Console.WriteLine("Invalid option. Please try again.");
+                    TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                     break;
             }
         }
@@ -183,13 +182,15 @@ public class Program
 
     private static async Task ManageProductsAsync()
     {
-        Console.WriteLine("Product Management");
-        Console.WriteLine("1. Add Product");
-        Console.WriteLine("2. Update Product");
-        Console.WriteLine("3. Delete Product");
-        Console.WriteLine("4. View All Products");
-        Console.WriteLine("5. Search Products");
-        Console.WriteLine("6. Back to Main Menu");
+        TextColor.WriteLine("Product Management", ConsoleColor.DarkMagenta);
+        TextColor.WriteLine("1. Add Product", ConsoleColor.Blue);
+        TextColor.WriteLine("2. Update Product", ConsoleColor.Blue);
+        TextColor.WriteLine("3. Delete Product", ConsoleColor.Blue);
+        TextColor.WriteLine("4. View All Products", ConsoleColor.Blue);
+        TextColor.WriteLine("5. Search Products", ConsoleColor.Blue);
+        TextColor.WriteLine("6. Back to Main Menu", ConsoleColor.Blue);
+        TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+        TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
         var choice = Console.ReadLine();
 
@@ -213,19 +214,21 @@ public class Program
             case "6":
                 break;
             default:
-                Console.WriteLine("Invalid option. Please try again.");
+                TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                 break;
         }
     }
 
     private static async Task ManageUsersAsync()
     {
-        Console.WriteLine("User Management");
-        Console.WriteLine("1. Register User");
-        Console.WriteLine("2. Register Admin");
-        Console.WriteLine("3. Update User Information");
-        Console.WriteLine("4. View User Orders");
-        Console.WriteLine("5. Back to Main Menu");
+        TextColor.WriteLine("User Management", ConsoleColor.DarkMagenta);
+        TextColor.WriteLine("1. Register User", ConsoleColor.Blue);
+        TextColor.WriteLine("2. Register Admin", ConsoleColor.Blue);
+        TextColor.WriteLine("3. Update User Information", ConsoleColor.Blue);
+        TextColor.WriteLine("4. View User Orders", ConsoleColor.Blue);
+        TextColor.WriteLine("5. Back to Main Menu", ConsoleColor.Blue);
+        TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+        TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
         var choice = Console.ReadLine();
 
@@ -246,19 +249,21 @@ public class Program
             case "5":
                 break;
             default:
-                Console.WriteLine("Invalid option. Please try again.");
+                TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                 break;
         }
     }
 
     private static async Task ManageOrdersAsync()
     {
-        Console.WriteLine("Order Management");
-        Console.WriteLine("1. Create Order");
-        Console.WriteLine("2. Cancel Order");
-        Console.WriteLine("3. Complete Order");
-        Console.WriteLine("4. View All Orders");
-        Console.WriteLine("5. Back to Main Menu");
+        TextColor.WriteLine("Order Management", ConsoleColor.DarkMagenta);
+        TextColor.WriteLine("1. Create Order", ConsoleColor.Blue);
+        TextColor.WriteLine("2. Cancel Order", ConsoleColor.Blue);
+        TextColor.WriteLine("3. Complete Order", ConsoleColor.Blue);
+        TextColor.WriteLine("4. View Orders", ConsoleColor.Blue);
+        TextColor.WriteLine("5. Back to Main Menu", ConsoleColor.Blue);
+        TextColor.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~", ConsoleColor.Blue);
+        TextColor.WriteLine("Select an option: ", ConsoleColor.DarkYellow);
 
         var choice = Console.ReadLine();
 
@@ -271,41 +276,15 @@ public class Program
                 await CancelOrderAsync();
                 break;
             case "3":
-                await CompleteOrderAsync();
+                await CompleteOrderAndMakePaymentAsync();
                 break;
             case "4":
-                await ViewOrdersAsync();
+                await ViewUserOrdersAsync();
                 break;
             case "5":
                 break;
             default:
-                Console.WriteLine("Invalid option. Please try again.");
-                break;
-        }
-    }
-
-    private static async Task ManagePaymentsAsync()
-    {
-        Console.WriteLine("Payment Management");
-        Console.WriteLine("1. Make Payment");
-        Console.WriteLine("2. View All Payments");
-        Console.WriteLine("3. Back to Main Menu");
-
-        var choice = Console.ReadLine();
-
-        switch (choice)
-        {
-            case "1":
-                await MakePaymentAsync();
-                break;
-            case "2":
-
-                await ViewPaymentsAsync();
-                break;
-            case "3":
-                return;
-            default:
-                Console.WriteLine("Invalid option. Please try again.");
+                TextColor.WriteLine("Invalid option. Please try again.", ConsoleColor.Red);
                 break;
         }
     }
@@ -313,7 +292,7 @@ public class Program
     private static async Task AddProductAsync()
     {
 
-        Console.WriteLine("| Create product |");
+        TextColor.WriteLine("| Create product |", ConsoleColor.DarkMagenta);
 
         string name;
         string description;
@@ -328,7 +307,7 @@ public class Program
                 name = Console.ReadLine();
                 if (!string.IsNullOrEmpty(name))
                     break;
-                Console.WriteLine("Name cannot be empty. Please try again.");
+                TextColor.WriteLine("Name cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
@@ -337,25 +316,25 @@ public class Program
                 description = Console.ReadLine();
                 if (!string.IsNullOrEmpty(description))
                     break;
-                Console.WriteLine("Description cannot be empty. Please try again.");
+                TextColor.WriteLine("Description cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter price: ");
+                TextColor.WriteLine("Enter price: ", ConsoleColor.Blue);
                 price = decimal.Parse(Console.ReadLine());
                 if (price != null)
                     break;
-                Console.WriteLine("Price cannot be empty. Please try again.");
+                TextColor.WriteLine("Price cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter stock amount: ");
+                TextColor.WriteLine("Enter stock amount: ", ConsoleColor.Blue);
                 stock = int.Parse(Console.ReadLine());
                 if (stock != null)
                     break;
-                Console.WriteLine("Stock cannot be empty. Please try again.");
+                TextColor.WriteLine("Stock cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             var productPost = new ProductPostDto
@@ -368,29 +347,29 @@ public class Program
 
             await _productService.AddProductAsync(productPost);
 
-            Console.WriteLine($"Product '{name}' created successfully.");
+            TextColor.WriteLine($"Product '{name}' created successfully.", ConsoleColor.Green);
             Console.WriteLine();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task UpdateProductAsync()
     {
-        Console.WriteLine("| Update Product |");
+        TextColor.WriteLine("| Update Product |", ConsoleColor.DarkMagenta);
 
         try
         {
-            Console.WriteLine("Enter product ID:");
+            TextColor.WriteLine("Enter product ID:", ConsoleColor.Blue);
             int productId = int.Parse(Console.ReadLine());
 
             var product = await _productService.GetProductById(productId);
 
             if (product == null)
             {
-                Console.WriteLine("Product not found.");
+                TextColor.WriteLine("Product not found.", ConsoleColor.Red);
                 return;
             }
 
@@ -403,32 +382,33 @@ public class Program
                 Stock = product.Stock
             };
 
-            Console.WriteLine($"Current Name: {product.Name}");
-            Console.WriteLine("Enter new Name (leave empty to keep current):");
+
+            TextColor.WriteLine($"Current Name: {product.Name}", ConsoleColor.DarkYellow);
+            TextColor.WriteLine("Enter new Name (leave empty to keep current):", ConsoleColor.Blue);
             string newName = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(newName))
             {
                 newProduct.Name = newName;
             }
 
-            Console.WriteLine($"Current Price: {product.Price}");
-            Console.WriteLine("Enter new Price (leave empty to keep current):");
+            TextColor.WriteLine($"Current Price: {product.Price}", ConsoleColor.DarkYellow);
+            TextColor.WriteLine("Enter new Price (leave empty to keep current):", ConsoleColor.Blue);
             string priceInput = Console.ReadLine();
             if (decimal.TryParse(priceInput, out decimal newPrice))
             {
                 newProduct.Price = newPrice;
             }
 
-            Console.WriteLine($"Current Stock: {product.Stock}");
-            Console.WriteLine("Enter new Stock (leave empty to keep current):");
+            TextColor.WriteLine($"Current Stock: {product.Stock}", ConsoleColor.DarkYellow);
+            TextColor.WriteLine("Enter new Stock (leave empty to keep current):", ConsoleColor.Blue);
             string stockInput = Console.ReadLine();
             if (int.TryParse(stockInput, out int newStock))
             {
                 newProduct.Stock = newStock;
             }
 
-            Console.WriteLine($"Current Description: {product.Description}");
-            Console.WriteLine("Enter new Description (leave empty to keep current):");
+            TextColor.WriteLine($"Current Description: {product.Description}", ConsoleColor.DarkYellow);
+            TextColor.WriteLine("Enter new Description (leave empty to keep current):", ConsoleColor.Blue);
             string newDescription = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(newDescription))
             {
@@ -437,48 +417,73 @@ public class Program
 
             await _productService.UpdateProductAsync(newProduct);
 
-            Console.WriteLine("Product updated successfully.");
+            TextColor.WriteLine("Product updated successfully.", ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
-
     private static async Task DeleteProductAsync()
     {
-        Console.WriteLine("Select product from list and enter product ID:");
-        await ViewAllProductsAsync();
-        var id = int.Parse(Console.ReadLine());
-        await _productService.DeleteProductAsync(id);
-        Console.WriteLine("Product deleted succesfully");
+        try
+        {
+            TextColor.WriteLine("Select product from list and enter product ID:", ConsoleColor.DarkYellow);
+            await ViewAllProductsAsync();
+            var id = int.Parse(Console.ReadLine());
+            await _productService.DeleteProductAsync(id);
+            TextColor.WriteLine("Product deleted succesfully", ConsoleColor.Green);
+        }
+        catch (Exception ex)
+        {
+            TextColor.WriteLine($"Error:{ex.Message}", ConsoleColor.Red);
+        }
     }
 
     private static async Task ViewAllProductsAsync()
     {
-        var products = await _productService.GetAllProducts();
-
-        foreach (var product in products)
+        try
         {
-            Console.WriteLine(product);
+            var products = await _productService.GetAllProducts();
+
+            foreach (var product in products)
+            {
+                Console.WriteLine(product);
+            }
+        }
+        catch (Exception ex)
+        {
+            TextColor.WriteLine($"Error:{ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task SearchProductsAsync()
     {
-        Console.WriteLine("Enter product name (or substring of name):");
-        var name = Console.ReadLine();
-        var products = await _productService.SearchProducts(name);
-        foreach (var product in products)
+        try
         {
-            Console.WriteLine(product);
+            TextColor.WriteLine("Enter product name (or substring of name):", ConsoleColor.DarkYellow);
+            var name = Console.ReadLine();
+            var products = await _productService.SearchProducts(name);
+
+            if (products == null || !products.Any())
+            {
+                TextColor.WriteLine("Products not found.", ConsoleColor.Red);
+            }
+            foreach (var product in products)
+            {
+                Console.WriteLine(product);
+            }
+        }
+        catch (Exception ex)
+        {
+            TextColor.WriteLine(ex.Message, ConsoleColor.Red);
         }
     }
 
     private static async Task RegisterAdminAsync()
     {
-        Console.WriteLine("| Admin Registration |");
+        TextColor.WriteLine("| Admin Registration |", ConsoleColor.DarkMagenta);
 
         string username = string.Empty;
         string email = string.Empty;
@@ -489,38 +494,38 @@ public class Program
         {
             while (true)
             {
-                Console.Write("Enter username: ");
+                TextColor.WriteLine("Enter username: ", ConsoleColor.Blue);
                 username = Console.ReadLine();
                 if (!string.IsNullOrEmpty(username))
                     break;
-                Console.WriteLine("Full name cannot be empty. Please try again.");
+                TextColor.WriteLine("Full name cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter email: ");
+                TextColor.WriteLine("Enter email: ", ConsoleColor.Blue);
                 email = Console.ReadLine();
                 if (!string.IsNullOrEmpty(email))
                     break;
-                Console.WriteLine("Email cannot be empty. Please try again.");
+                TextColor.WriteLine("Email cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter password: ");
+                TextColor.WriteLine("Enter password: ", ConsoleColor.Blue);
                 password = Console.ReadLine();
                 if (!string.IsNullOrEmpty(password))
                     break;
-                Console.WriteLine("Password cannot be empty. Please try again.");
+                TextColor.WriteLine("Password cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter address: ");
+                TextColor.WriteLine("Enter address: ", ConsoleColor.Blue);
                 address = Console.ReadLine();
                 if (!string.IsNullOrEmpty(address))
                     break;
-                Console.WriteLine("Address cannot be empty. Please try again.");
+                TextColor.WriteLine("Address cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             var userPost = new UserPostDto
@@ -545,7 +550,7 @@ public class Program
 
     private static async Task RegisterUserAsync()
     {
-        Console.WriteLine("| User Registration |");
+        TextColor.WriteLine("| User Registration |", ConsoleColor.DarkMagenta);
 
         string username = string.Empty;
         string email = string.Empty;
@@ -556,38 +561,38 @@ public class Program
         {
             while (true)
             {
-                Console.Write("Enter full name: ");
+                TextColor.WriteLine("Enter full name: ", ConsoleColor.Blue);
                 username = Console.ReadLine();
                 if (!string.IsNullOrEmpty(username))
                     break;
-                Console.WriteLine("Full name cannot be empty. Please try again.");
+                TextColor.WriteLine("Full name cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter email: ");
+                TextColor.WriteLine("Enter email: ", ConsoleColor.Blue);
                 email = Console.ReadLine();
                 if (!string.IsNullOrEmpty(email))
                     break;
-                Console.WriteLine("Email cannot be empty. Please try again.");
+                TextColor.WriteLine("Email cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter password: ");
+                TextColor.WriteLine("Enter password: ", ConsoleColor.Blue);
                 password = Console.ReadLine();
                 if (!string.IsNullOrEmpty(password))
                     break;
-                Console.WriteLine("Password cannot be empty. Please try again.");
+                TextColor.WriteLine("Password cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             while (true)
             {
-                Console.Write("Enter address: ");
+                TextColor.WriteLine("Enter address: ", ConsoleColor.Blue);
                 address = Console.ReadLine();
                 if (!string.IsNullOrEmpty(address))
                     break;
-                Console.WriteLine("Address cannot be empty. Please try again.");
+                TextColor.WriteLine("Address cannot be empty. Please try again.", ConsoleColor.Red);
             }
 
             var userPost = new UserPostDto
@@ -601,21 +606,22 @@ public class Program
 
             await _userService.RegisterUserAsync(userPost);
 
-            Console.WriteLine($"User {username} created successfully.");
+            TextColor.WriteLine($"User {username} created successfully.", ConsoleColor.Green);
             Console.WriteLine();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task LoginAsync()
     {
-        Console.WriteLine("Enter email:");
+        TextColor.WriteLine("| Login |", ConsoleColor.DarkMagenta);
+        TextColor.WriteLine("Enter email:", ConsoleColor.Blue);
         string email = Console.ReadLine();
 
-        Console.WriteLine("Enter password:");
+        TextColor.WriteLine("Enter password:", ConsoleColor.Blue);
         string password = Console.ReadLine();
 
         try
@@ -625,36 +631,37 @@ public class Program
             if (user != null)
             {
                 _currentUser = user;
-                Console.WriteLine($"User {user.UserName} logged in successfully.");
+                //CurrentUser = user;
+                TextColor.WriteLine($"User {user.UserName} logged in successfully.", ConsoleColor.Green);
             }
         }
         catch (UserAuthenticationException ex)
         {
-            Console.WriteLine($"Login failed: {ex.Message}");
+            TextColor.WriteLine($"Login failed: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task UpdateUserInformationAsync()
     {
-        Console.WriteLine("| Update User Information |");
+        TextColor.WriteLine("| Update User Information |", ConsoleColor.DarkMagenta);
 
         try
         {
             int userId = CurrentUser.IsAdmin ? PromptForUserId() : CurrentUser.Id;
 
-            Console.Write("Enter new username (leave blank to keep current): ");
+            TextColor.WriteLine("Enter new username (leave blank to keep current): ", ConsoleColor.Blue);
             string newUserName = Console.ReadLine();
 
-            Console.Write("Enter new address (leave blank to keep current): ");
+            TextColor.WriteLine("Enter new address (leave blank to keep current): ", ConsoleColor.Blue);
             string newAddress = Console.ReadLine();
 
-            Console.Write("Do you want to update the password? (y/n): ");
+            TextColor.WriteLine("Do you want to update the password? (y/n): ", ConsoleColor.Blue);
             string updatePassword = Console.ReadLine();
 
             string newPassword = null;
             if (updatePassword.ToLower() == "y")
             {
-                Console.Write("Enter new password: ");
+                TextColor.WriteLine("Enter new password: ", ConsoleColor.Blue);
                 newPassword = Console.ReadLine();
             }
 
@@ -671,17 +678,17 @@ public class Program
         }
         catch (NotFoundException)
         {
-            Console.WriteLine("User not found.");
+            TextColor.WriteLine("User not found.", ConsoleColor.Red);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task ViewUserOrdersAsync()
     {
-        Console.WriteLine("| View Orders |");
+        TextColor.WriteLine("| View Orders |", ConsoleColor.DarkMagenta);
 
         try
         {
@@ -689,18 +696,18 @@ public class Program
 
             if (CurrentUser.IsAdmin)
             {
-                Console.WriteLine("Admin view: orders for all users.");
+                TextColor.WriteLine("Admin view: orders for all users.", ConsoleColor.Blue);
                 orders = await _orderService.GetAllOrders();
             }
             else
             {
-                Console.WriteLine("User view: orders for the current user.");
+                TextColor.WriteLine("User view: orders for the current user.", ConsoleColor.Blue);
                 orders = await _orderService.GetUserOrdersAsync(CurrentUser.Id);
             }
 
             if (orders.Count == 0)
             {
-                Console.WriteLine("No orders found.");
+                TextColor.WriteLine("No orders found.", ConsoleColor.Red);
                 return;
             }
 
@@ -711,27 +718,21 @@ public class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task CreateOrderAsync()
     {
-        Console.WriteLine("| Create Order |");
+        TextColor.WriteLine("| Create Order |", ConsoleColor.DarkMagenta);
 
         try
         {
-            if (CurrentUser == null)
-            {
-                Console.WriteLine("You need to log in first.");
-                return;
-            }
-
             int userId = CurrentUser.IsAdmin ? PromptForUserId() : CurrentUser.Id;
 
             if (userId == 0)
             {
-                Console.WriteLine("Invalid user ID.");
+                TextColor.WriteLine("Invalid user ID.", ConsoleColor.Red);
                 return;
             }
 
@@ -740,7 +741,7 @@ public class Program
 
             while (true)
             {
-                Console.WriteLine("Enter product ID (or type 'done' to finish):");
+                TextColor.WriteLine("Enter product ID (or type 'done' to finish):", ConsoleColor.Blue);
                 var input = Console.ReadLine();
 
                 if (input?.ToLower() == "done")
@@ -748,14 +749,14 @@ public class Program
 
                 if (int.TryParse(input.Trim(), out var productId))
                 {
-                    Console.WriteLine("Enter quantity for product ID {0}:", productId);
+                    TextColor.WriteLine($"Enter quantity for product ID {productId}:", ConsoleColor.Blue);
                     if (int.TryParse(Console.ReadLine(), out var quantity) && quantity > 0)
                     {
                         decimal pricePerUnit = await _productService.GetProductPrice(productId);
 
                         if (pricePerUnit <= 0)
                         {
-                            Console.WriteLine("Invalid product price.");
+                            TextColor.WriteLine("Invalid product price.", ConsoleColor.Red);
                             continue;
                         }
 
@@ -771,18 +772,18 @@ public class Program
                     }
                     else
                     {
-                        Console.WriteLine("Invalid quantity. Please enter a positive number.");
+                        TextColor.WriteLine("Invalid quantity. Please enter a positive number.", ConsoleColor.Red);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Invalid product ID. Please enter a valid number.");
+                    TextColor.WriteLine("Invalid product ID. Please enter a valid number.", ConsoleColor.Red);
                 }
             }
 
             if (!orderItems.Any())
             {
-                Console.WriteLine("No products specified.");
+                TextColor.WriteLine("No products specified.", ConsoleColor.Red);
                 return;
             }
 
@@ -795,37 +796,25 @@ public class Program
 
             await _orderService.CreateOrderAsync(orderDto);
 
-            Console.WriteLine("Order created successfully.");
+            TextColor.WriteLine("Order created successfully.", ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
-    }
-
-    private static int PromptForUserId()
-    {
-        Console.Write("Enter the ID of the user to create the order for: ");
-        return int.TryParse(Console.ReadLine(), out var userId) ? userId : 0;
     }
 
     private static async Task CancelOrderAsync()
     {
-        Console.WriteLine("| Cancel Order |");
+        TextColor.WriteLine("| Cancel Order |", ConsoleColor.DarkMagenta);
 
         try
         {
-            if (CurrentUser == null)
-            {
-                Console.WriteLine("You need to log in first.");
-                return;
-            }
-
             int userId = CurrentUser.IsAdmin ? PromptForUserId() : CurrentUser.Id;
 
             if (userId == 0)
             {
-                Console.WriteLine("Invalid user ID.");
+                TextColor.WriteLine("Invalid user ID.", ConsoleColor.Red);
                 return;
             }
 
@@ -833,29 +822,29 @@ public class Program
 
             if (CurrentUser.IsAdmin)
             {
-                orders = await _orderService.GetUserOrdersAsync(userId); // Get all orders for the specified user
+                orders = await _orderService.GetUserOrdersAsync(userId);
             }
             else
             {
-                orders = await _orderService.GetUserOrdersAsync(CurrentUser.Id); // Get only the current user's orders
+                orders = await _orderService.GetUserOrdersAsync(CurrentUser.Id);
             }
 
             if (!orders.Any())
             {
-                Console.WriteLine("No orders found for the specified user.");
+                TextColor.WriteLine("No orders found for the specified user.", ConsoleColor.Red);
                 return;
             }
 
-            Console.WriteLine("Orders:");
+            TextColor.WriteLine("Orders:", ConsoleColor.DarkYellow);
             foreach (var order in orders)
             {
                 Console.WriteLine(order);
             }
 
-            Console.Write("Enter the ID of the order to cancel: ");
+            TextColor.WriteLine("Enter the ID of the order to cancel: ", ConsoleColor.Blue);
             if (!int.TryParse(Console.ReadLine(), out int orderId))
             {
-                Console.WriteLine("Invalid order ID.");
+                TextColor.WriteLine("Invalid order ID.", ConsoleColor.Red);
                 return;
             }
 
@@ -863,35 +852,35 @@ public class Program
 
             if (orderToCancel == null)
             {
-                Console.WriteLine("Order not found.");
+                TextColor.WriteLine("Order not found.", ConsoleColor.Red);
                 return;
             }
 
             if (orderToCancel.Status != OrderStatus.Pending)
             {
-                Console.WriteLine("Only pending orders can be cancelled.");
+                TextColor.WriteLine("Only pending orders can be cancelled.", ConsoleColor.Red);
                 return;
             }
 
             await _orderService.CancelOrderAsync(orderId);
 
-            Console.WriteLine("Order cancelled successfully.");
+            TextColor.WriteLine("Order cancelled successfully.", ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
-    private static async Task CompleteOrderAsync()
+    private static async Task CompleteOrderAndMakePaymentAsync()
     {
-        Console.WriteLine("| Complete Order |");
+        TextColor.WriteLine("| Complete Order and Make Payment |", ConsoleColor.DarkMagenta);
 
         try
         {
             if (CurrentUser == null)
             {
-                Console.WriteLine("You need to log in first.");
+                TextColor.WriteLine("You need to log in first.", ConsoleColor.Red);
                 return;
             }
 
@@ -899,119 +888,7 @@ public class Program
 
             if (userId == 0)
             {
-                Console.WriteLine("Invalid user ID.");
-                return;
-            }
-
-            List<OrderGetDto> orders;
-
-            if (CurrentUser.IsAdmin)
-            {
-                orders = await _orderService.GetUserOrdersAsync(userId); // Get all orders for the specified user
-            }
-            else
-            {
-                orders = await _orderService.GetUserOrdersAsync(CurrentUser.Id); // Get only the current user's orders
-            }
-
-            if (!orders.Any())
-            {
-                Console.WriteLine("No orders found for the specified user.");
-                return;
-            }
-
-            Console.WriteLine("Orders:");
-            foreach (var order in orders)
-            {
-                Console.WriteLine($"ID: {order.Id}, Date: {order.OrderDate}, Status: {order.Status}, Total Amount: {order.TotalAmount}");
-            }
-
-            Console.Write("Enter the ID of the order to complete: ");
-            if (!int.TryParse(Console.ReadLine(), out int orderId))
-            {
-                Console.WriteLine("Invalid order ID.");
-                return;
-            }
-
-            var orderToComplete = orders.FirstOrDefault(o => o.Id == orderId);
-
-            if (orderToComplete == null)
-            {
-                Console.WriteLine("Order not found.");
-                return;
-            }
-
-            if (orderToComplete.Status != OrderStatus.Pending)
-            {
-                Console.WriteLine("Only pending orders can be completed.");
-                return;
-            }
-
-            await _orderService.CompleteOrderAsync(orderId);
-
-            Console.WriteLine("Order completed successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-    }
-
-
-    private static async Task ViewOrdersAsync()
-    {
-        Console.WriteLine("| View Orders |");
-
-        try
-        {
-            if (CurrentUser == null)
-            {
-                Console.WriteLine("You need to log in first.");
-                return;
-            }
-
-            int userId = CurrentUser.IsAdmin ? 0 : CurrentUser.Id;
-
-            var orders = await _orderService.GetUserOrdersAsync(userId);
-
-            if (!orders.Any())
-            {
-                Console.WriteLine("No orders found.");
-                return;
-            }
-
-            foreach (var order in orders)
-            {
-                Console.WriteLine(order);
-
-                foreach (var detail in order.Details)
-                {
-                    Console.WriteLine(detail);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-    }
-    private static async Task MakePaymentAsync()
-    {
-        Console.WriteLine("| Make Payment |");
-
-        try
-        {
-            if (CurrentUser == null)
-            {
-                Console.WriteLine("You need to log in first.");
-                return;
-            }
-
-            int userId = CurrentUser.IsAdmin ? PromptForUserId() : CurrentUser.Id;
-
-            if (userId == 0)
-            {
-                Console.WriteLine("Invalid user ID.");
+                TextColor.WriteLine("Invalid user ID.", ConsoleColor.Red);
                 return;
             }
 
@@ -1019,11 +896,11 @@ public class Program
 
             if (!orders.Any())
             {
-                Console.WriteLine("No pending orders found.");
+                TextColor.WriteLine("No pending orders found.", ConsoleColor.Red);
                 return;
             }
 
-            Console.WriteLine("Select the order ID to make payment for:");
+            TextColor.WriteLine("Select the order ID to complete and make payment for:", ConsoleColor.DarkYellow);
             foreach (var order in orders)
             {
                 Console.WriteLine(order);
@@ -1031,14 +908,7 @@ public class Program
 
             if (!int.TryParse(Console.ReadLine(), out int orderId) || !orders.Any(o => o.Id == orderId))
             {
-                Console.WriteLine("Invalid order ID.");
-                return;
-            }
-
-            Console.WriteLine("Enter payment amount:");
-            if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount <= 0)
-            {
-                Console.WriteLine("Invalid payment amount.");
+                TextColor.WriteLine("Invalid order ID.", ConsoleColor.Red);
                 return;
             }
 
@@ -1046,52 +916,47 @@ public class Program
 
             if (selectedOrder == null)
             {
-                Console.WriteLine("Order not found.");
+                TextColor.WriteLine("Order not found.", ConsoleColor.Red);
                 return;
             }
 
-            if (paymentAmount < selectedOrder.TotalAmount)
+            if (selectedOrder.Status != OrderStatus.Pending)
             {
-                Console.WriteLine("Payment amount is less than the total amount. Please pay the full amount.");
+                TextColor.WriteLine("Only pending orders can be completed.", ConsoleColor.Red);
                 return;
             }
 
             var paymentDto = new PaymentPostDto
             {
                 OrderId = selectedOrder.Id,
-                Amount = paymentAmount,
+                Amount = selectedOrder.TotalAmount,
                 PaymentDate = DateTime.UtcNow
             };
 
             await _paymentService.MakePaymentAsync(paymentDto);
+            await _orderService.CompleteOrderAsync(orderId);
 
-            Console.WriteLine("Payment successful. Your order has been completed.");
+            TextColor.WriteLine("Payment successful. Your order has been completed.", ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
 
     private static async Task ViewPaymentsAsync()
     {
-        Console.WriteLine("| View Payments |");
+        TextColor.WriteLine("| View Payments |", ConsoleColor.DarkMagenta);
 
         try
         {
-            if (CurrentUser == null)
-            {
-                Console.WriteLine("You need to log in first.");
-                return;
-            }
-
             int userId = CurrentUser.IsAdmin ? PromptForUserId() : CurrentUser.Id;
 
             var payments = await _paymentService.GetPaymentByUserId(userId);
 
             if (!payments.Any())
             {
-                Console.WriteLine("No payments found.");
+                TextColor.WriteLine("No payments found.", ConsoleColor.Red);
                 return;
             }
 
@@ -1102,9 +967,13 @@ public class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            TextColor.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
         }
     }
-
+    private static int PromptForUserId()
+    {
+        TextColor.WriteLine("Enter the ID of the user: ", ConsoleColor.Blue);
+        return int.TryParse(Console.ReadLine(), out var userId) ? userId : 0;
+    }
 
 }

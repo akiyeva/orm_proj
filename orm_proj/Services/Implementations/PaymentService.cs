@@ -28,9 +28,9 @@ namespace orm_proj.Services.Implementations
                 throw new NotFoundException($"Order with ID {paymentDto.OrderId} not found.");
             }
 
-            if (order.Status == OrderStatus.Cancelled)
+            if (order.Status == OrderStatus.Cancelled || order.Status == OrderStatus.Completed)
             {
-                throw new InvalidPaymentException("Cannot make payment for a cancelled order.");
+                throw new InvalidPaymentException("You can only make payment for pending order.");
             }
 
             Payment payment = new Payment
@@ -44,9 +44,11 @@ namespace orm_proj.Services.Implementations
             order.Status = OrderStatus.Completed;
 
             _orderRepository.Update(order);
-            await _orderRepository.SaveChangesAsync();
-        }
 
+            await _orderRepository.SaveChangesAsync();
+            await _paymentRepository.SaveChangesAsync();
+
+        }
 
         public async Task<List<PaymentGetDto>> GetAllPayments()
         {
@@ -70,17 +72,22 @@ namespace orm_proj.Services.Implementations
 
         public async Task<List<PaymentGetDto>> GetPaymentByUserId(int userId)
         {
-            var payments = await _paymentRepository.GetAllAsync();
+            var payments = await _paymentRepository.GetFilterAsync(x => x.Order.UserId == userId);
 
-            return payments
-                .Where(payment => payment.Order.UserId == userId)
-                .Select(payment => new PaymentGetDto
+            List<PaymentGetDto> result = new List<PaymentGetDto>();
+
+            payments.ForEach(payment =>
+            {
+                PaymentGetDto paymentGet = new PaymentGetDto()
                 {
                     Id = payment.Id,
                     OrderId = payment.OrderId,
                     Amount = payment.Amount,
                     PaymentDate = payment.PaymentDate
-                }).ToList();
+                };
+                result.Add(paymentGet);
+            });
+            return result;
         }
     }
 }

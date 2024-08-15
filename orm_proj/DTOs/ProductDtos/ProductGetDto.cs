@@ -9,7 +9,7 @@
         public int Stock { get; set; }
         public override string ToString()
         {
-            return $"{Name} {Price}$, description: {Description}, {Stock} left.";
+            return $"{Id}. {Name} {Price}$, description: {Description}, {Stock} left.";
         }
     }
 }

@@ -12,10 +12,7 @@ namespace orm_proj.Models
         public OrderStatus Status { get; set; }
         public List<OrderDetail> Details { get; set; }
 
-        public override string ToString()
-        {
-            return $"UserId: {UserId}, OrderDate: {OrderDate}, Total Amount: {TotalAmount}, Order status: {Status}; Details: {Details}";
-        }
+      
     }
 }
     

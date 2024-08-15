@@ -10,9 +10,5 @@ namespace orm_proj.Models
         public Product Product { get; set; }
         public int Quantity { get; set; } //Sifariş edilmiş məhsulun sayı.
         public decimal PricePerItem { get; set; } //Məhsulun hər biri üçün qiymət.
-        public override string ToString()
-        {
-            return $"OrderId: {OrderId}, ProductId: {ProductId}, Quantity:{Quantity}, Price per item: {PricePerItem}";
-        }
     }
 }

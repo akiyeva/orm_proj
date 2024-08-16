@@ -7,13 +7,9 @@ namespace orm_proj.Repositories.Implementations
     public class OrderDetailRepository : Repository<OrderDetail>, IOrderDetailRepository
     {
         private readonly AppDBContext _context;
-        public OrderDetailRepository()
+        public OrderDetailRepository(AppDBContext context)
         {
-            _context = new AppDBContext();
-        }
-        public async Task<List<OrderDetail>> GetByOrderIdAsync(int orderId)
-        {
-            return await _context.OrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
+            _context = context;
         }
     }
 }

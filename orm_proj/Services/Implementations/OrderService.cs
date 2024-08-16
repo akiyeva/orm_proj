@@ -22,14 +22,10 @@ namespace orm_proj.Services.Implementations
             var user = await _userRepository.GetSingleAsync(x => x.Id == newOrder.UserId);
 
             if (user == null)
-            {
                 throw new NotFoundException("User not found.");
-            }
 
             if (newOrder.Details == null || !newOrder.Details.Any())
-            {
                 throw new InvalidOrderException("Order must contain at least one product.");
-            }
 
             Order order = new Order()
             {
@@ -46,17 +42,15 @@ namespace orm_proj.Services.Implementations
                 var product = await _productRepository.GetSingleAsync(x => x.Id == detail.ProductId);
 
                 if (product == null)
-                {
                     throw new NotFoundException($"Product with ID {detail.ProductId} not found.");
-                }
 
                 if (product.Stock < detail.Quantity)
-                {
                     throw new InvalidOrderException($"Product {product.Name} is out of stock or insufficient quantity available.");
-                }
+
+                if (product.Price <= 0)
+                    throw new InvalidOrderDetailException("Product price cannot be zero or negative.");
 
                 product.Stock -= detail.Quantity;
-
                 _productRepository.Update(product);
 
                 decimal productTotalPrice = product.Price * detail.Quantity;
@@ -65,14 +59,14 @@ namespace orm_proj.Services.Implementations
                 order.Details.Add(new OrderDetail
                 {
                     ProductId = detail.ProductId,
-                    Quantity = detail.Quantity
+                    Quantity = detail.Quantity,
+                    PricePerItem = product.Price
                 });
             }
 
             order.TotalAmount = totalAmount;
 
             await _orderRepository.CreateAsync(order);
-
             await _orderRepository.SaveChangesAsync();
             await _productRepository.SaveChangesAsync();
         }
@@ -112,8 +106,7 @@ namespace orm_proj.Services.Implementations
                     UserId = order.UserId,
                     OrderDate = DateTime.UtcNow,
                     TotalAmount = order.TotalAmount,
-                    Status = Enums.OrderStatus.Pending,
-                    Details = order.Details
+                    Status = order.Status,
                 };
                 result.Add(orderGet);
             });
@@ -135,7 +128,6 @@ namespace orm_proj.Services.Implementations
                     OrderDate = order.OrderDate,
                     TotalAmount = order.TotalAmount,
                     Status = order.Status,
-                    Details = order.Details
                 };
                 result.Add(orderGet);
             });

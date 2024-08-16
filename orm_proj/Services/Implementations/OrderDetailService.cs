@@ -21,24 +21,39 @@ namespace orm_proj.Services.Implementations
             var product = await _productRepository.GetSingleAsync(x => x.Id == newOrderDetail.ProductId);
             var order = await _orderRepository.GetSingleAsync(x => x.Id == newOrderDetail.OrderId);
 
-            if (product == null || order == null)
-                throw new NotFoundException();
+            if (product == null)
+                throw new NotFoundException("Product not found.");
 
-            if (newOrderDetail.Quantity < 0 || newOrderDetail.PricePerItem < 0)
-                throw new InvalidOrderDetailException();
+            if (order == null)
+                throw new NotFoundException("Order not found.");
+
+            if (newOrderDetail.Quantity <= 0)
+                throw new InvalidOrderDetailException("Quantity must be greater than zero.");
+
+            if (product.Stock < newOrderDetail.Quantity)
+                throw new InvalidOrderDetailException($"Insufficient stock for product {product.Name}.");
+
+            product.Stock -= newOrderDetail.Quantity;
+            _productRepository.Update(product);
 
             OrderDetail orderDetail = new OrderDetail()
             {
                 ProductId = newOrderDetail.ProductId,
                 OrderId = newOrderDetail.OrderId,
                 Quantity = newOrderDetail.Quantity,
-                PricePerItem = newOrderDetail.PricePerItem,
+                PricePerItem = product.Price 
             };
+
+            order.Details.Add(orderDetail);
+
+            await _orderRepository.SaveChangesAsync();
+            await _productRepository.SaveChangesAsync();
         }
 
-        public async Task<List<OrderDetailGetDto>> GetOrderDetailsByOrderId(int id)
+
+        public async Task<List<OrderDetailGetDto>> GetOrderDetailsByOrderId(int orderId)
         {
-            var orderDetails = await _orderDetailRepository.GetByOrderIdAsync(id);
+            var orderDetails = await _orderDetailRepository.GetFilterAsync(x => x.OrderId == orderId);
 
             List<OrderDetailGetDto> result = new List<OrderDetailGetDto>();
 

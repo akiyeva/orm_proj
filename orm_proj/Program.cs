@@ -4,6 +4,8 @@ using orm_proj.Repositories.Implementations;
 using orm_proj.Services;
 using orm_proj.Services.Implementations;
 using orm_proj.Services.Interfaces;
+using ClosedXML.Excel;
+using System.Net.Http.Headers;
 
 public class Program
 {
@@ -11,12 +13,13 @@ public class Program
     private static IUserService _userService;
     private static IOrderService _orderService;
     private static IPaymentService _paymentService;
+    private static IOrderDetailService _orderDetailService;
     private static UserGetDto _currentUser;
     public static UserGetDto CurrentUser => _currentUser;  //public static UserGetDto CurrentUser = null;
     public static async Task Main(string[] args)
     {
         InitializeServices();
-
+        ExcelExports();
         while (true)
         {
             try
@@ -53,11 +56,13 @@ public class Program
         var userRepository = new UserRepository(dbContext);
         var orderRepository = new OrderRepository(dbContext);
         var paymentRepository = new PaymentRepository(dbContext);
+        var orderDetailRepository = new OrderDetailRepository(dbContext);
 
         _productService = new ProductService(productRepository);
         _userService = new UserService(userRepository, orderRepository);
         _orderService = new OrderService(orderRepository, userRepository, productRepository);
         _paymentService = new PaymentService(paymentRepository, orderRepository);
+        _orderDetailService = new OrderDetailService(orderDetailRepository, productRepository, orderRepository);  
     }
     private static async Task FirstMenuAsync()
     {
@@ -303,7 +308,7 @@ public class Program
         {
             while (true)
             {
-                Console.Write("Enter name: ");
+                TextColor.WriteLine("Enter name: ", ConsoleColor.Blue);
                 name = Console.ReadLine();
                 if (!string.IsNullOrEmpty(name))
                     break;
@@ -312,7 +317,7 @@ public class Program
 
             while (true)
             {
-                Console.Write("Enter description: ");
+                TextColor.WriteLine("Enter description: ", ConsoleColor.Blue);
                 description = Console.ReadLine();
                 if (!string.IsNullOrEmpty(description))
                     break;
@@ -901,7 +906,7 @@ public class Program
             }
 
             TextColor.WriteLine("Select the order ID to complete and make payment for:", ConsoleColor.DarkYellow);
-            foreach (var order in orders)
+            foreach (var order in orders.Where(o=>o.Status==OrderStatus.Pending))
             {
                 Console.WriteLine(order);
             }
@@ -975,5 +980,41 @@ public class Program
         TextColor.WriteLine("Enter the ID of the user: ", ConsoleColor.Blue);
         return int.TryParse(Console.ReadLine(), out var userId) ? userId : 0;
     }
+    public bool Export<T>(List<T> list, string file, string sheetName ) 
+    {
+        bool exported = false;
+        using(IXLWorkbook workbook = new XLWorkbook())
+        {
+            workbook.AddWorksheet(sheetName).FirstCell().InsertTable<T>(list, false);
+         
+            workbook.SaveAs(file);
+            exported = true;    
+        }
+        return exported;
+    }
+ 
+    public async static Task ExcelExports()
+    {
+        var products = await _productService.GetAllProducts();
+        var orders = await _orderService.GetAllOrders();
+        var payments = await _paymentService.GetAllPayments();
+        var users = await _userService.GetAllUsers();
 
+        using (var workbook = new XLWorkbook())
+        {
+            var productsSheet = workbook.AddWorksheet("Products");
+            productsSheet.FirstCell().InsertTable(products);
+
+            var ordersSheet = workbook.AddWorksheet("Orders");
+            ordersSheet.FirstCell().InsertTable(orders);
+
+            var paymentsSheet = workbook.AddWorksheet("Payments");
+            paymentsSheet.FirstCell().InsertTable(payments);
+
+            var usersSheet = workbook.AddWorksheet("Users");
+            usersSheet.FirstCell().InsertTable(users);
+
+            workbook.SaveAs(@"C:\Users\NafisatAkiyeva\Desktop\Excels\Test.xlsx");
+        }
+    }
 }

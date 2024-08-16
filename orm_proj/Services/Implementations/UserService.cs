@@ -1,6 +1,9 @@
 ﻿using orm_proj.Models;
+using orm_proj.Repositories.Implementations;
 using orm_proj.Repositories.Interfaces;
 using orm_proj.Services.Interfaces;
+using System.Security.Authentication;
+using System.Text.RegularExpressions;
 
 namespace orm_proj.Services.Implementations
 {
@@ -71,10 +74,6 @@ namespace orm_proj.Services.Implementations
             _userRepository.Update(user);
         }
 
-        public async Task ExportUserOrdersToExcelAsync(int userId, string filePath)
-        {
-            throw new NotImplementedException("Export to Excel is not implemented.");
-        }
 
         public async Task RegisterAdminAsync(UserPostDto newAdmin)
         {
@@ -104,6 +103,82 @@ namespace orm_proj.Services.Implementations
         {
             return await _userRepository.GetByEmailAsync(email);
         }
+        public async Task<List<UserGetDto>> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            List<UserGetDto> result = new List<UserGetDto>();
+
+            users.ForEach(user =>
+            {
+                UserGetDto userGet = new UserGetDto()
+                {
+                   Id = user.Id,
+                   UserName = user.UserName,
+                   Email = user.Email,
+                   Address  = user.Address,
+                   IsAdmin = user.IsAdmin,
+                };
+
+                result.Add(userGet);
+            });
+
+            return result;
+        }
+
+
+        //public bool CheckPassword(string password)
+        //{
+        //    if (string.IsNullOrWhiteSpace(password))
+        //        throw new InvalidCredentialsException("Password cannot be empty.");
+
+        //    bool hasUpper = false;
+        //    bool hasLower = false;
+        //    bool hasDigit = false;
+
+        //    foreach (char c in password)
+        //    {
+        //        if (char.IsUpper(c))
+        //            hasUpper = true;
+        //        else if (char.IsLower(c))
+        //            hasLower = true;
+        //        else if (char.IsDigit(c))
+        //            hasDigit = true;
+        //    }
+
+
+        //    if (!hasUpper || !hasLower || !hasDigit || password.Length < 8)
+        //        throw new InvalidCredentialsException("Password should contain at least 8 characters, including upper and lower case letters, and at least one digit.");
+
+        //    return true;
+
+        //}
+
+
+        //public bool CheckUsername(string username)
+        //{
+        //    if (string.IsNullOrWhiteSpace(username))
+        //        throw new InvalidCredentialsException("Fullname cannot be empty.");
+
+        //    if (!char.IsUpper(username[0]))
+        //        throw new InvalidCredentialsException("First letter should be an uppercase letter.");
+
+        //    return true;
+        //}
+
+        //public bool CheckEmail(string email)
+        //{
+        //    if (string.IsNullOrWhiteSpace(email))
+        //        throw new InvalidCredentialsException("Email cannot be null.");
+
+        //    string pattern = @"^(([^<>()[\]\\.,;:\s@\""]+(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
+        //    Regex regex = new Regex(pattern);
+        //    if (!regex.IsMatch(email))
+        //    {
+        //        throw new InvalidCredentialsException($"The email address '{email}' is not in a valid format.");
+        //    }
+        //    return true;
+        //}
     }
-    }
+}
 
